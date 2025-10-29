@@ -1,0 +1,58 @@
+{
+  "name": "@typed-web/valibot-form-data",
+  "version": "0.0.0",
+  "description": "Valibot validators for parsing and validating FormData",
+  "author": "Łukasz Jagodziński <luke.jagodzinski@gmail.com>",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/typed-web/typed-web.git",
+    "directory": "packages/valibot-form-data"
+  },
+  "homepage": "https://github.com/typed-web/typed-web/tree/main/packages/valibot-form-data#readme",
+  "files": [
+    "LICENSE",
+    "README.md",
+    "dist",
+    "src",
+    "!src/**/*.test.ts"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts",
+    "./package.json": "./package.json"
+  },
+  "publishConfig": {
+    "exports": {
+      ".": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "./package.json": "./package.json"
+    }
+  },
+  "dependencies": {
+    "valibot": "^1.1.0"
+  },
+  "devDependencies": {
+    "@types/node": "^24.9.2",
+    "esbuild": "^0.25.11"
+  },
+  "scripts": {
+    "build": "pnpm run clean && pnpm run build:types && pnpm run build:esm",
+    "build:esm": "esbuild src/index.ts --bundle --outfile=dist/index.js --format=esm --platform=neutral --sourcemap",
+    "build:types": "tsc --project tsconfig.build.json",
+    "clean": "rm -rf dist",
+    "prepublishOnly": "pnpm run build",
+    "test": "node --disable-warning=ExperimentalWarning --test './src/**/*.test.ts'",
+    "typecheck": "tsc --noEmit"
+  },
+  "keywords": [
+    "valibot",
+    "form",
+    "form-data",
+    "validation",
+    "schema",
+    "typescript"
+  ]
+}

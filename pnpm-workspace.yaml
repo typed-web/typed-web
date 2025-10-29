@@ -1,0 +1,5 @@
+shellEmulator: true
+
+packages:
+  - packages/*
+  - scripts
