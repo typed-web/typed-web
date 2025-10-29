@@ -1,6 +1,6 @@
 {
   "name": "@typed-web/valibot-form-data",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Valibot validators for parsing and validating FormData",
   "author": "Łukasz Jagodziński <luke.jagodzinski@gmail.com>",
   "license": "MIT",

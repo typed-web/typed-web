@@ -2,6 +2,6 @@
 
 This is the changelog for [`valibot-form-data`](https://github.com/typed-web/typed-web/tree/main/packages/valibot-form-data). It follows [semantic versioning](https://semver.org/).
 
-## Unreleased
+## v0.1.0 (2025-10-29)
 
 - Initial release of `@typed-web/valibot-form-data`
