@@ -39,7 +39,7 @@ This library provides a set of helpers that make these common tasks simple and t
 - **Checkbox support**: Handles checkbox on/off states
 - **File uploads**: Treats empty files as `undefined`
 - **Repeatable fields**: Handles multiple values for the same field name
-- **Nested objects**: Supports dot notation and array bracket notation
+- **Nested objects**: Parses dot notation (e.g., `address.street`), bracket notation (e.g., `items[0][name]`), and mixed notation into nested object structures
 
 ## Basic Usage
 
@@ -65,15 +65,19 @@ const result = v.parse(schema, data);
 
 ### `formData(shape)`
 
-Main function for processing FormData or URLSearchParams into a structured object. Supports nested objects via dot notation.
+Main function for processing FormData or URLSearchParams into a structured object. Supports nested objects using `v.object()`.
 
 ```typescript
 const schema = formData({
   name: text(),
-  "address.street": text(),
-  "address.city": text(),
+  address: v.object({
+    street: text(),
+    city: text(),
+  }),
 });
 
+// FormData input with dot notation:
+// name=John&address.street=123 Main St&address.city=NYC
 // Result: { name: "John", address: { street: "123 Main St", city: "NYC" } }
 ```
 
@@ -181,6 +185,63 @@ numbers.parse("42"); // → [42]
 numbers.parse(undefined); // → []
 ```
 
+## Advanced Examples
+
+### Nested Objects
+
+Use `v.object()` to define nested object structures. The form field names should use dot notation:
+
+```typescript
+const schema = formData({
+  name: text(),
+  address: v.object({
+    street: text(),
+    city: text(),
+  }),
+});
+
+// HTML form:
+// <input name="name" value="John" />
+// <input name="address.street" value="123 Main St" />
+// <input name="address.city" value="Anytown" />
+
+// Result: { name: "John", address: { street: "123 Main St", city: "Anytown" } }
+```
+
+### Arrays of Objects
+
+Use `v.array()` with `v.object()` for arrays of objects. The form field names can use dot notation with indices or bracket notation:
+
+```typescript
+const schema = formData({
+  locations: v.array(
+    v.object({
+      country: text(),
+      city: text(),
+    })
+  ),
+});
+
+// HTML form (dot notation):
+// <input name="locations.0.country" value="USA" />
+// <input name="locations.0.city" value="New York" />
+// <input name="locations.1.country" value="Canada" />
+// <input name="locations.1.city" value="Toronto" />
+
+// Or using bracket notation:
+// <input name="locations[0][country]" value="USA" />
+// <input name="locations[0][city]" value="New York" />
+// <input name="locations[1][country]" value="Canada" />
+// <input name="locations[1][city]" value="Toronto" />
+
+// Result: {
+//   locations: [
+//     { country: "USA", city: "New York" },
+//     { country: "Canada", city: "Toronto" }
+//   ]
+// }
+```
+
 ## Complex Example
 
 ```typescript
@@ -210,14 +271,16 @@ const userSchema = formData({
   // File upload
   avatar: file(v.optional(v.instance(File))),
 
-  // Nested object (using dot notation)
-  "address.street": text(),
-  "address.city": text(),
-  "address.zip": text(v.pipe(v.string(), v.regex(/^\d{5}$/))),
+  // Nested object (form fields use dot notation: address.street, address.city, address.zip)
+  address: v.object({
+    street: text(),
+    city: text(),
+    zip: text(v.pipe(v.string(), v.regex(/^\d{5}$/))),
+  }),
 
-  // Multiple values
-  "hobbies[]": repeatableOfType(text()),
-  "scores[]": repeatableOfType(numeric()),
+  // Multiple values (form fields: hobbies[], scores[])
+  hobbies: repeatableOfType(text()),
+  scores: repeatableOfType(numeric()),
 });
 
 // Usage with HTML form
