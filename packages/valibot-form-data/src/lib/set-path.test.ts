@@ -2,7 +2,7 @@ import * as assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { setPath } from "./set-path.ts";
 
-describe('The "setPath" function', () => {
+describe("setPath()", () => {
   describe("with object paths", () => {
     it("should set a simple property on an empty object", () => {
       const obj = {};

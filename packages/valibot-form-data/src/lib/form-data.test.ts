@@ -1,175 +1,160 @@
 import * as assert from "node:assert/strict";
 import { describe, test } from "node:test";
 import * as v from "valibot";
-import * as vfd from "./form-data-schema.ts";
+import { checkbox } from "./checkbox.ts";
+import { file } from "./file.ts";
+import { formData, preprocessFormData } from "./form-data.ts";
+import { numeric } from "./numeric.ts";
+import { repeatable, repeatableOfType } from "./repeatable.ts";
+import { text } from "./text.ts";
 
-describe("Form Data Schema Validators", () => {
-  describe("text()", () => {
-    test("should parse valid text", () => {
-      assert.strictEqual(v.parse(vfd.text(), "text"), "text");
-    });
+const vfd = { checkbox, file, formData, numeric, repeatable, repeatableOfType, text };
 
-    test("should throw on empty strings when required", () => {
-      assert.throws(() => v.parse(vfd.text(), ""), v.ValiError);
-    });
+describe("preprocessFormData()", () => {
+  test("should transform flat fields", () => {
+    const formData = new URLSearchParams([
+      ["name", "John"],
+      ["age", "30"],
+    ]);
+    const result = preprocessFormData(formData);
+    assert.deepStrictEqual(result, { name: "John", age: "30" });
+  });
 
-    test("should throw on undefined", () => {
-      assert.throws(() => v.parse(vfd.text(), undefined), v.ValiError);
-    });
-
-    test("should allow empty strings when optional", () => {
-      assert.strictEqual(v.parse(vfd.text(v.optional(v.string())), ""), undefined);
-    });
-
-    test("should work with custom validation", () => {
-      const minLength = vfd.text(v.pipe(v.string(), v.minLength(3)));
-      assert.strictEqual(v.parse(minLength, "hello"), "hello");
-      assert.throws(() => v.parse(minLength, "hi"), v.ValiError);
+  test("should handle dot notation for nested objects", () => {
+    const formData = new URLSearchParams([
+      ["user.name", "John"],
+      ["user.email", "john@example.com"],
+      ["user.address.street", "123 Main St"],
+      ["user.address.city", "Anytown"],
+    ]);
+    const result = preprocessFormData(formData);
+    assert.deepStrictEqual(result, {
+      user: {
+        name: "John",
+        email: "john@example.com",
+        address: {
+          street: "123 Main St",
+          city: "Anytown",
+        },
+      },
     });
   });
 
-  describe("numeric()", () => {
-    test("should parse integer strings", () => {
-      assert.strictEqual(v.parse(vfd.numeric(), "123"), 123);
-    });
-
-    test("should parse decimal strings", () => {
-      assert.strictEqual(v.parse(vfd.numeric(), "123.456"), 123.456);
-    });
-
-    test("should throw on empty strings when required", () => {
-      assert.throws(() => v.parse(vfd.numeric(), ""), v.ValiError);
-    });
-
-    test("should throw on undefined", () => {
-      assert.throws(() => v.parse(vfd.numeric(), undefined), v.ValiError);
-    });
-
-    test("should throw on non-numeric strings", () => {
-      assert.throws(() => v.parse(vfd.numeric(), "abc"), v.ValiError);
-      assert.throws(() => v.parse(vfd.numeric(), "24px"), v.ValiError);
-      assert.throws(() => v.parse(vfd.numeric(), "hello123"), v.ValiError);
-    });
-
-    test("should allow empty strings when optional", () => {
-      assert.strictEqual(v.parse(vfd.numeric(v.optional(v.number())), ""), undefined);
-    });
-
-    test("should work with custom validation", () => {
-      const minValue = vfd.numeric(v.pipe(v.number(), v.minValue(10)));
-      assert.strictEqual(v.parse(minValue, "15"), 15);
-      assert.throws(() => v.parse(minValue, "5"), v.ValiError);
+  test("should handle bracket notation for arrays", () => {
+    const formData = new URLSearchParams([
+      ["items[0].name", "Item 1"],
+      ["items[0].price", "10"],
+      ["items[1].name", "Item 2"],
+      ["items[1].price", "20"],
+    ]);
+    const result = preprocessFormData(formData);
+    assert.deepStrictEqual(result, {
+      items: [
+        { name: "Item 1", price: "10" },
+        { name: "Item 2", price: "20" },
+      ],
     });
   });
 
-  describe("checkbox()", () => {
-    test("should return true for default checked value", () => {
-      assert.strictEqual(v.parse(vfd.checkbox(), "on"), true);
-    });
-
-    test("should return false for undefined (unchecked)", () => {
-      assert.strictEqual(v.parse(vfd.checkbox(), undefined), false);
-    });
-
-    test("should work with custom trueValue", () => {
-      const customCheckbox = vfd.checkbox({ trueValue: "yes" });
-      assert.strictEqual(v.parse(customCheckbox, "yes"), true);
-      assert.strictEqual(v.parse(customCheckbox, undefined), false);
-    });
-
-    test("should throw on invalid values", () => {
-      assert.throws(() => v.parse(vfd.checkbox(), "off"), v.ValiError);
-      assert.throws(() => v.parse(vfd.checkbox(), "false"), v.ValiError);
-      assert.throws(() => v.parse(vfd.checkbox(), ""), v.ValiError);
-    });
-
-    test("should throw on wrong custom values", () => {
-      const customCheckbox = vfd.checkbox({ trueValue: "yes" });
-      assert.throws(() => v.parse(customCheckbox, "on"), v.ValiError);
-      assert.throws(() => v.parse(customCheckbox, "no"), v.ValiError);
+  test("should group multiple values with same key into array", () => {
+    const formData = new URLSearchParams([
+      ["tags", "javascript"],
+      ["tags", "typescript"],
+      ["tags", "react"],
+    ]);
+    const result = preprocessFormData(formData);
+    assert.deepStrictEqual(result, {
+      tags: ["javascript", "typescript", "react"],
     });
   });
 
-  describe("file()", () => {
-    test("should accept valid files", () => {
-      const file = new File(["Hello!"], "hello.txt", { type: "text/plain" });
-      assert.strictEqual(v.parse(vfd.file(), file), file);
-    });
-
-    test("should throw on empty files when required", () => {
-      const emptyFile = new File([], "empty.txt", { type: "text/plain" });
-      assert.throws(() => v.parse(vfd.file(), emptyFile), v.ValiError);
-    });
-
-    test("should throw on non-File objects", () => {
-      assert.throws(() => v.parse(vfd.file(), "not-a-file"), v.ValiError);
-      assert.throws(() => v.parse(vfd.file(), undefined), v.ValiError);
-      assert.throws(() => v.parse(vfd.file(), null), v.ValiError);
-    });
-
-    test("should allow empty files when optional", () => {
-      const emptyFile = new File([], "empty.txt", { type: "text/plain" });
-      assert.strictEqual(v.parse(vfd.file(v.optional(v.instance(File))), emptyFile), undefined);
-    });
-
-    test("should work with custom validation", () => {
-      const imageFile = vfd.file(v.pipe(v.instance(File), v.mimeType(["image/png"])));
-      const pngFile = new File(["data"], "image.png", { type: "image/png" });
-      const txtFile = new File(["data"], "file.txt", { type: "text/plain" });
-
-      assert.strictEqual(v.parse(imageFile, pngFile), pngFile);
-      assert.throws(() => v.parse(imageFile, txtFile), v.ValiError);
+  test("should keep single values as single values", () => {
+    const formData = new URLSearchParams([
+      ["name", "John"],
+      ["email", "john@example.com"],
+    ]);
+    const result = preprocessFormData(formData);
+    assert.deepStrictEqual(result, {
+      name: "John",
+      email: "john@example.com",
     });
   });
 
-  describe("repeatable()", () => {
-    test("should convert single values to arrays", () => {
-      assert.deepStrictEqual(v.parse(vfd.repeatable(), "one"), ["one"]);
-    });
-
-    test("should pass through arrays unchanged", () => {
-      assert.deepStrictEqual(v.parse(vfd.repeatable(), ["one", "two"]), ["one", "two"]);
-    });
-
-    test("should convert undefined to empty array", () => {
-      assert.deepStrictEqual(v.parse(vfd.repeatable(), undefined), []);
-    });
-
-    test("should validate array items with default text schema", () => {
-      assert.throws(() => v.parse(vfd.repeatable(), ["valid", ""]), v.ValiError);
-      assert.deepStrictEqual(v.parse(vfd.repeatable(), ["valid", "also-valid"]), [
-        "valid",
-        "also-valid",
-      ]);
-    });
-
-    test("should work with custom array validation", () => {
-      const atLeastOne = vfd.repeatable(v.pipe(v.array(vfd.text()), v.minLength(1)));
-      assert.deepStrictEqual(v.parse(atLeastOne, ["item"]), ["item"]);
-      assert.throws(() => v.parse(atLeastOne, []), v.ValiError);
-      assert.throws(() => v.parse(atLeastOne, undefined), v.ValiError);
+  test("should handle mixed notation", () => {
+    const formData = new URLSearchParams([
+      ["user.name", "John"],
+      ["user.hobbies[0]", "reading"],
+      ["user.hobbies[1]", "coding"],
+      ["settings.theme", "dark"],
+    ]);
+    const result = preprocessFormData(formData);
+    assert.deepStrictEqual(result, {
+      user: {
+        name: "John",
+        hobbies: ["reading", "coding"],
+      },
+      settings: {
+        theme: "dark",
+      },
     });
   });
 
-  describe("repeatableOfType()", () => {
-    test("should work with numeric item schema", () => {
-      const repeatableNumbers = vfd.repeatableOfType(vfd.numeric());
-      assert.deepStrictEqual(v.parse(repeatableNumbers, ["1", "2"]), [1, 2]);
-      assert.deepStrictEqual(v.parse(repeatableNumbers, "42"), [42]);
-      assert.deepStrictEqual(v.parse(repeatableNumbers, undefined), []);
-    });
+  test("should handle empty FormData", () => {
+    const formData = new URLSearchParams([]);
+    const result = preprocessFormData(formData);
+    assert.deepStrictEqual(result, {});
+  });
 
-    test("should work with custom item validation", () => {
-      const repeatableEmails = vfd.repeatableOfType(
-        v.pipe(vfd.text(), v.email("Must be valid email")),
-      );
-      assert.deepStrictEqual(v.parse(repeatableEmails, "test@example.com"), ["test@example.com"]);
-      assert.throws(() => v.parse(repeatableEmails, "invalid-email"), v.ValiError);
+  test("should work with FormData (not just URLSearchParams)", () => {
+    const formData = new FormData();
+    formData.append("name", "John");
+    formData.append("age", "30");
+    formData.append("tags", "js");
+    formData.append("tags", "ts");
+    const result = preprocessFormData(formData);
+    assert.deepStrictEqual(result, {
+      name: "John",
+      age: "30",
+      tags: ["js", "ts"],
+    });
+  });
+
+  test("should handle numeric indices in dot notation", () => {
+    const formData = new URLSearchParams([
+      ["items.0.name", "First"],
+      ["items.1.name", "Second"],
+    ]);
+    const result = preprocessFormData(formData);
+    assert.deepStrictEqual(result, {
+      items: [{ name: "First" }, { name: "Second" }],
+    });
+  });
+
+  test("should handle complex nested structures", () => {
+    const formData = new URLSearchParams([
+      ["users[0].name", "Alice"],
+      ["users[0].roles[0]", "admin"],
+      ["users[0].roles[1]", "editor"],
+      ["users[1].name", "Bob"],
+      ["users[1].roles[0]", "viewer"],
+    ]);
+    const result = preprocessFormData(formData);
+    assert.deepStrictEqual(result, {
+      users: [
+        {
+          name: "Alice",
+          roles: ["admin", "editor"],
+        },
+        {
+          name: "Bob",
+          roles: ["viewer"],
+        },
+      ],
     });
   });
 });
 
-describe("FormData Integration", () => {
+describe("formData()", () => {
   describe("basic field parsing", () => {
     test("should parse text fields", () => {
       const formData = new URLSearchParams([["name", "John Doe"]]);
@@ -375,6 +360,100 @@ describe("FormData Integration", () => {
         checkedBox: true,
         uncheckedBox: false,
         missingRepeatable: [],
+      });
+    });
+  });
+
+  describe("plain object support", () => {
+    test("should accept plain objects", () => {
+      const data = {
+        name: "John",
+        age: "30",
+      };
+      const result = v.parse(
+        vfd.formData({
+          name: vfd.text(),
+          age: vfd.numeric(),
+        }),
+        data,
+      );
+      assert.deepStrictEqual(result, { name: "John", age: 30 });
+    });
+
+    test("should handle nested objects from plain objects", () => {
+      const data = {
+        user: {
+          name: "John",
+          email: "john@example.com",
+        },
+      };
+      const result = v.parse(
+        vfd.formData({
+          user: v.object({
+            name: vfd.text(),
+            email: vfd.text(),
+          }),
+        }),
+        data,
+      );
+      assert.deepStrictEqual(result, {
+        user: {
+          name: "John",
+          email: "john@example.com",
+        },
+      });
+    });
+
+    test("should handle arrays in plain objects", () => {
+      const data = {
+        tags: ["javascript", "typescript"],
+      };
+      const result = v.parse(
+        vfd.formData({
+          tags: vfd.repeatable(),
+        }),
+        data,
+      );
+      assert.deepStrictEqual(result, { tags: ["javascript", "typescript"] });
+    });
+
+    test("should add missing fields with undefined for plain objects", () => {
+      const data = {
+        name: "John",
+      };
+      const result = v.parse(
+        vfd.formData({
+          name: vfd.text(),
+          age: vfd.numeric(v.optional(v.number())),
+          hobbies: vfd.repeatable(),
+        }),
+        data,
+      );
+      assert.deepStrictEqual(result, {
+        name: "John",
+        age: undefined,
+        hobbies: [],
+      });
+    });
+
+    test("should work with mixed plain object and validator logic", () => {
+      const data = {
+        name: "John",
+        subscribe: "on",
+        age: "25",
+      };
+      const result = v.parse(
+        vfd.formData({
+          name: vfd.text(),
+          subscribe: vfd.checkbox(),
+          age: vfd.numeric(),
+        }),
+        data,
+      );
+      assert.deepStrictEqual(result, {
+        name: "John",
+        subscribe: true,
+        age: 25,
       });
     });
   });

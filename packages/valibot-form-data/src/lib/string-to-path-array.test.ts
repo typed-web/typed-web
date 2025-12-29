@@ -2,7 +2,7 @@ import * as assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { stringToPathArray } from "./string-to-path-array.ts";
 
-describe('The "stringToPathArray" function', () => {
+describe("stringToPathArray()", () => {
   describe("with empty path", () => {
     it("should return empty array for empty string", () => {
       assert.deepStrictEqual(stringToPathArray(""), []);

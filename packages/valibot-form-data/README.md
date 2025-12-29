@@ -185,6 +185,33 @@ numbers.parse("42"); // → [42]
 numbers.parse(undefined); // → []
 ```
 
+### `preprocessFormData(formData)`
+
+Preprocesses FormData or URLSearchParams (or any iterable of key-value pairs) into a nested object structure. This function is used internally by `formData()`, but is also exported for cases where you want to preprocess the data separately.
+
+- Converts single values to the value itself, multiple values to arrays
+- Parses dot notation (`address.street`) into nested objects
+- Parses bracket notation (`items[0][name]`) into nested arrays/objects
+- Supports mixed notation
+
+```typescript
+import { preprocessFormData } from "@typed-web/valibot-form-data";
+
+const formData = new FormData();
+formData.append("name", "John");
+formData.append("address.street", "123 Main St");
+formData.append("address.city", "NYC");
+formData.append("tags", "tag1");
+formData.append("tags", "tag2");
+
+const obj = preprocessFormData(formData);
+// → {
+//   name: "John",
+//   address: { street: "123 Main St", city: "NYC" },
+//   tags: ["tag1", "tag2"]
+// }
+```
+
 ## Advanced Examples
 
 ### Nested Objects
@@ -218,7 +245,7 @@ const schema = formData({
     v.object({
       country: text(),
       city: text(),
-    })
+    }),
   ),
 });
 

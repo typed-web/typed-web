@@ -34,7 +34,12 @@
     "packages/*"
   ],
   "pnpm": {
-    "onlyBuiltDependencies": ["@swc/core", "esbuild", "sharp", "workerd"]
+    "onlyBuiltDependencies": [
+      "@swc/core",
+      "esbuild",
+      "sharp",
+      "workerd"
+    ]
   },
   "devDependencies": {
     "eslint-import-resolver-typescript": "^4.4.4"
