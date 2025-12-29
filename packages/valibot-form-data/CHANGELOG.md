@@ -2,7 +2,7 @@
 
 This is the changelog for [`valibot-form-data`](https://github.com/typed-web/typed-web/tree/main/packages/valibot-form-data). It follows [semantic versioning](https://semver.org/).
 
-## Unreleased
+## v0.2.0 (2025-12-29)
 
 - Add `preprocessFormData` as a public export for preprocessing form data to nested objects
 - Add plain object support to `formData` validator (in addition to FormData and URLSearchParams)
