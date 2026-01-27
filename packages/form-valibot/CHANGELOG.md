@@ -2,7 +2,7 @@
 
 This is the changelog for [`form-valibot`](https://github.com/typed-web/typed-web/tree/main/packages/form-valibot). It follows [semantic versioning](https://semver.org/).
 
-## Unreleased
+## v0.1.1 (2026-01-27)
 
 - Initial release
 - `valibotIssuesToFlatObject` - Convert Valibot issues to flat error structure

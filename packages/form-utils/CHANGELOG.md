@@ -2,7 +2,7 @@
 
 This is the changelog for [`form-utils`](https://github.com/typed-web/typed-web/tree/main/packages/form-utils). It follows [semantic versioning](https://semver.org/).
 
-## Unreleased
+## v0.1.1 (2026-01-27)
 
 - Initial release
 - `setValueAtPath` - Set values at nested object paths

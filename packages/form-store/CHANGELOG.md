@@ -2,7 +2,7 @@
 
 This is the changelog for [`form-store`](https://github.com/typed-web/typed-web/tree/main/packages/form-store). It follows [semantic versioning](https://semver.org/).
 
-## Unreleased
+## v0.1.1 (2026-01-27)
 
 - Initial release
 - `createFormStore` - Create type-safe form stores
