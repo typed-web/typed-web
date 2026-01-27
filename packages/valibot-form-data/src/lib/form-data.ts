@@ -1,5 +1,5 @@
+import { setValueAtPath } from "@typed-web/form-utils";
 import * as v from "valibot";
-import { setPath } from "./set-path.ts";
 
 /**
  * Type guard that checks if a value is a plain object.
@@ -63,11 +63,11 @@ export function preprocessFormData(formData: Iterable<unknown>) {
     }
   }
 
-  // Build nested object using setPath for dot/bracket notation
+  // Build nested object using setValueAtPath for dot/bracket notation
   const result = [...map].reduce((acc, [key, list]) => {
     // Single value stays as single value, multiple values become array
     const value = list.length === 1 ? list[0] : list;
-    return setPath(acc, key, value);
+    return setValueAtPath(acc, key, value);
   }, {});
 
   return result;
@@ -139,7 +139,7 @@ export type FormDataConfig = {
  * 1. Accepts FormData, URLSearchParams, or plain objects
  * 2. For iterables: converts to array of [key, value] entries and groups multiple values
  * 3. For plain objects: uses them directly
- * 4. Uses setPath to create nested objects from dot/bracket notation keys (for iterables)
+ * 4. Uses setValueAtPath to create nested objects from dot/bracket notation keys (for iterables)
  * 5. Ensures all schema keys exist and validates the result against the provided schema
  *
  * @param entries - Valibot object entries defining the expected structure
@@ -250,7 +250,7 @@ export function formData(
       // This allows validators to provide their own defaults (like repeatable() returning [])
       for (const key of Object.keys(entries)) {
         if (!(key in transformedValue)) {
-          setPath(transformedValue, key, undefined);
+          setValueAtPath(transformedValue, key, undefined);
         }
       }
 

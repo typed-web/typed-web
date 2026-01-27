@@ -1,15 +1,15 @@
 {
-  "name": "@typed-web/valibot-form-data",
-  "version": "0.3.0",
-  "description": "Valibot validators for parsing and validating FormData",
+  "name": "@typed-web/form-valibot",
+  "version": "0.1.0",
+  "description": "Valibot error adapters for form handling",
   "author": "Łukasz Jagodziński <luke.jagodzinski@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/typed-web/typed-web.git",
-    "directory": "packages/valibot-form-data"
+    "directory": "packages/form-valibot"
   },
-  "homepage": "https://github.com/typed-web/typed-web/tree/main/packages/valibot-form-data#readme",
+  "homepage": "https://github.com/typed-web/typed-web/tree/main/packages/form-valibot#readme",
   "files": [
     "LICENSE",
     "README.md",
@@ -54,9 +54,8 @@
   "keywords": [
     "valibot",
     "form",
-    "form-data",
     "validation",
-    "schema",
+    "errors",
     "typescript"
   ]
 }

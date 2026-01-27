@@ -1,15 +1,15 @@
 {
-  "name": "@typed-web/valibot-form-data",
-  "version": "0.3.0",
-  "description": "Valibot validators for parsing and validating FormData",
+  "name": "@typed-web/form-zod",
+  "version": "0.1.0",
+  "description": "Zod error adapters for form handling",
   "author": "Łukasz Jagodziński <luke.jagodzinski@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/typed-web/typed-web.git",
-    "directory": "packages/valibot-form-data"
+    "directory": "packages/form-zod"
   },
-  "homepage": "https://github.com/typed-web/typed-web/tree/main/packages/valibot-form-data#readme",
+  "homepage": "https://github.com/typed-web/typed-web/tree/main/packages/form-zod#readme",
   "files": [
     "LICENSE",
     "README.md",
@@ -32,7 +32,7 @@
     }
   },
   "peerDependencies": {
-    "valibot": "^1.1.0"
+    "zod": "^4.3.6"
   },
   "dependencies": {
     "@typed-web/form-utils": "workspace:*"
@@ -40,11 +40,11 @@
   "devDependencies": {
     "@types/node": "^25.0.10",
     "esbuild": "^0.27.2",
-    "valibot": "^1.1.0"
+    "zod": "^4.3.6"
   },
   "scripts": {
     "build": "pnpm run clean && pnpm run build:types && pnpm run build:esm",
-    "build:esm": "esbuild src/index.ts --bundle --outfile=dist/index.js --format=esm --platform=neutral --sourcemap --external:valibot --external:@typed-web/form-utils",
+    "build:esm": "esbuild src/index.ts --bundle --outfile=dist/index.js --format=esm --platform=neutral --sourcemap --external:zod --external:@typed-web/form-utils",
     "build:types": "tsc --project tsconfig.build.json",
     "clean": "rm -rf dist",
     "prepublishOnly": "pnpm run build",
@@ -52,11 +52,10 @@
     "typecheck": "tsc --noEmit"
   },
   "keywords": [
-    "valibot",
+    "zod",
     "form",
-    "form-data",
     "validation",
-    "schema",
+    "errors",
     "typescript"
   ]
 }

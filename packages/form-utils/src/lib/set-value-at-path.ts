@@ -1,4 +1,4 @@
-import { stringToPathArray } from "./string-to-path-array.ts";
+import { stringPathToArrayPath } from "./string-path-to-array-path.ts";
 
 /**
  * Sets a value at a specific path within an object, creating nested objects/arrays as needed.
@@ -12,25 +12,25 @@ import { stringToPathArray } from "./string-to-path-array.ts";
  *
  * @example
  * const obj = {};
- * setPath(obj, "user.profile.name", "John");
+ * setValueAtPath(obj, "user.profile.name", "John");
  * // obj becomes { user: { profile: { name: "John" } } }
  *
  * @example
  * const obj = {};
- * setPath(obj, "users[0].name", "Alice");
+ * setValueAtPath(obj, "users[0].name", "Alice");
  * // obj becomes { users: [{ name: "Alice" }] }
  *
  * @example
  * const obj = {};
- * setPath(obj, "config[database][host]", "localhost");
+ * setValueAtPath(obj, "config[database][host]", "localhost");
  * // obj becomes { config: { database: { host: "localhost" } } }
  */
-export function setPath<T extends Record<string | number, unknown>>(
+export function setValueAtPath<T extends Record<string | number, unknown>>(
   object: T,
   path: string,
   value: unknown,
 ): T {
-  const pathSegments = stringToPathArray(path);
+  const pathSegments = stringPathToArrayPath(path);
 
   // Handle empty path - cannot set value on empty path.
   if (pathSegments.length === 0) {

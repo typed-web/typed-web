@@ -106,24 +106,17 @@ export default [
     },
     rules: {
       ...tseslint.configs.recommended.rules,
-
-      // Always use `import type { X }` and keep type imports separate from value imports
       "@typescript-eslint/consistent-type-imports": [
         "error",
         {
           prefer: "type-imports",
-          fixStyle: "separate-type-imports",
+          fixStyle: "inline-type-imports",
         },
       ],
-
-      // Always use `export type { X }`; avoid mixing type and value exports
       "@typescript-eslint/consistent-type-exports": [
         "error",
-        {
-          fixMixedExportsWithInlineTypeSpecifier: false,
-        },
+        { fixMixedExportsWithInlineTypeSpecifier: true },
       ],
-
       "@typescript-eslint/no-empty-function": "error",
       "@typescript-eslint/no-empty-interface": "error",
       "@typescript-eslint/no-empty-object-type": "error",

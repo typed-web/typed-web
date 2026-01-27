@@ -2,6 +2,12 @@
 
 This is the changelog for [`valibot-form-data`](https://github.com/typed-web/typed-web/tree/main/packages/valibot-form-data). It follows [semantic versioning](https://semver.org/).
 
+## Unreleased
+
+- Add `@typed-web/form-utils` as a dependency
+- Refactor to use shared utilities (`setValueAtPath`, `stringPathToArrayPath`) from `@typed-web/form-utils`
+- Remove duplicate utility implementations
+
 ## v0.2.1 (2025-12-29)
 
 - Update LICENSE copyright information

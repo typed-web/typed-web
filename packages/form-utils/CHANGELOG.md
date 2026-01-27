@@ -1,0 +1,14 @@
+# `form-utils` CHANGELOG
+
+This is the changelog for [`form-utils`](https://github.com/typed-web/typed-web/tree/main/packages/form-utils). It follows [semantic versioning](https://semver.org/).
+
+## Unreleased
+
+- Initial release
+- `setValueAtPath` - Set values at nested object paths
+- `stringPathToArrayPath` - Parse path strings with dot and bracket notation
+- `arrayPathToStringPath` - Convert path arrays to string paths
+- `flatObjectToNestedObject` - Convert flat objects to nested structures
+- `nestedObjectToFlatObject` - Convert nested objects to flat structures
+- `getArraysDiff` - Compute differences between arrays
+- TypeScript type definitions: `FlatObject<V>`, `NestedObject<T>`

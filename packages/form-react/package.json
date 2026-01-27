@@ -1,15 +1,15 @@
 {
-  "name": "@typed-web/valibot-form-data",
-  "version": "0.3.0",
-  "description": "Valibot validators for parsing and validating FormData",
+  "name": "@typed-web/form-react",
+  "version": "0.1.0",
+  "description": "React hooks and components for @typed-web/form-store",
   "author": "Łukasz Jagodziński <luke.jagodzinski@gmail.com>",
   "license": "MIT",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/typed-web/typed-web.git",
-    "directory": "packages/valibot-form-data"
+    "directory": "packages/form-react"
   },
-  "homepage": "https://github.com/typed-web/typed-web/tree/main/packages/valibot-form-data#readme",
+  "homepage": "https://github.com/typed-web/typed-web/tree/main/packages/form-react#readme",
   "files": [
     "LICENSE",
     "README.md",
@@ -32,19 +32,20 @@
     }
   },
   "peerDependencies": {
-    "valibot": "^1.1.0"
+    "react": "^18.0.0 || ^19.0.0"
   },
   "dependencies": {
-    "@typed-web/form-utils": "workspace:*"
+    "@typed-web/form-store": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.0.10",
+    "@types/react": "^19.0.6",
     "esbuild": "^0.27.2",
-    "valibot": "^1.1.0"
+    "react": "^19.0.0"
   },
   "scripts": {
     "build": "pnpm run clean && pnpm run build:types && pnpm run build:esm",
-    "build:esm": "esbuild src/index.ts --bundle --outfile=dist/index.js --format=esm --platform=neutral --sourcemap --external:valibot --external:@typed-web/form-utils",
+    "build:esm": "esbuild src/index.ts --bundle --outfile=dist/index.js --format=esm --platform=neutral --sourcemap --external:react --external:@typed-web/form-store",
     "build:types": "tsc --project tsconfig.build.json",
     "clean": "rm -rf dist",
     "prepublishOnly": "pnpm run build",
@@ -52,11 +53,10 @@
     "typecheck": "tsc --noEmit"
   },
   "keywords": [
-    "valibot",
     "form",
-    "form-data",
-    "validation",
-    "schema",
+    "react",
+    "hooks",
+    "components",
     "typescript"
   ]
 }

@@ -71,13 +71,13 @@ function parsePath(currentPath: string): Array<string | number> | null {
  * @returns Array of path segments where numeric strings become numbers
  *
  * @example
- * stringToPathArray("user.profile[0].name") // ["user", "profile", 0, "name"]
- * stringToPathArray("users.0[name]") // ["users", 0, "name"]
- * stringToPathArray("[0].title") // [0, "title"]
- * stringToPathArray("") // []
- * stringToPathArray("invalid[[path") // ["invalid[[path"] (invalid syntax)
+ * stringPathToArrayPath("user.profile[0].name") // ["user", "profile", 0, "name"]
+ * stringPathToArrayPath("users.0[name]") // ["users", 0, "name"]
+ * stringPathToArrayPath("[0].title") // [0, "title"]
+ * stringPathToArrayPath("") // []
+ * stringPathToArrayPath("invalid[[path") // ["invalid[[path"] (invalid syntax)
  */
-export function stringToPathArray(path: string): Array<string | number> {
+export function stringPathToArrayPath(path: string): Array<string | number> {
   // Handle empty path.
   if (path.length === 0) {
     return [];
