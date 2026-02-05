@@ -1,11 +1,11 @@
-import { setValueAtPath } from "./set-value-at-path.ts";
+import { objectFromPathEntries } from "./object-from-path-entries.ts";
 
 /**
- * Transforms flat FormData/URLSearchParams entries into a nested object structure.
+ * Transforms FormData, URLSearchParams, or plain objects into a nested object structure.
  * Handles dot notation (e.g., "address.street") and bracket notation (e.g., "items[0].name").
  * Multiple values for the same key are automatically grouped into arrays.
  *
- * @param formData - Iterable of key-value pairs (FormData or URLSearchParams)
+ * @param data - FormData, URLSearchParams, or plain object to transform
  * @returns Nested object with grouped values
  *
  * @example
@@ -17,28 +17,19 @@ import { setValueAtPath } from "./set-value-at-path.ts";
  * ]);
  * const result = preprocessFormData(formData);
  * // Result: { name: "John", address: { street: "123 Main St" }, hobbies: ["reading", "coding"] }
+ *
+ * @example
+ * const data = { name: "John", age: "30" };
+ * const result = preprocessFormData(data);
+ * // Result: { name: "John", age: "30" }
  */
 export function preprocessFormData(
-  formData: Iterable<unknown>,
+  data: FormData | URLSearchParams | Record<string, unknown>,
 ): Record<string, unknown> {
-  const entries = [...formData] as Array<[string, unknown]>;
-
-  // Group values by key (handling multiple values for same key)
-  const map = new Map<string, Array<unknown>>();
-  for (const [key, value] of entries) {
-    if (map.has(key)) {
-      map.get(key)?.push(value);
-    } else {
-      map.set(key, [value]);
-    }
+  // Check if data has entries method (FormData, URLSearchParams, Map, etc.)
+  if ("entries" in data && typeof data.entries === "function") {
+    return objectFromPathEntries([...data.entries()]);
   }
-
-  // Build nested object using setValueAtPath for dot/bracket notation
-  const result = [...map].reduce<Record<string, unknown>>((acc, [key, list]) => {
-    // Single value stays as single value, multiple values become array
-    const value = list.length === 1 ? list[0] : list;
-    return setValueAtPath(acc, key, value);
-  }, {});
-
-  return result;
+  // Plain object - use Object.entries
+  return objectFromPathEntries(Object.entries(data));
 }

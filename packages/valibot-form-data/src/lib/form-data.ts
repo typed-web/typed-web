@@ -2,34 +2,19 @@ import { preprocessFormData, setValueAtPath } from "@typed-web/form-utils";
 import * as v from "valibot";
 
 /**
- * Type guard that checks if a value is a plain object.
- * Used to detect when the input is already in object form (e.g., from JSON).
+ * Type guard that checks if a value is a valid input for preprocessFormData.
+ * Accepts plain objects, FormData, URLSearchParams, and other objects.
  *
  * @param value - Value to check
- * @returns Type predicate indicating if value is a plain object
+ * @returns Type predicate indicating if value can be processed
  */
-function isPlainObject(value: unknown): value is Record<string, unknown> {
+function isFormDataInput(
+  value: unknown,
+): value is FormData | URLSearchParams | Record<string, unknown> {
   return (
-    typeof value === "object" &&
-    value !== null &&
-    !Array.isArray(value) &&
-    Object.getPrototypeOf(value) === Object.prototype
-  );
-}
-
-/**
- * Type guard that checks if a value implements the Iterable interface.
- * Used to validate that FormData or URLSearchParams can be processed.
- *
- * @param value - Value to check for iterability
- * @returns Type predicate indicating if value is iterable
- */
-function isIterable<T = unknown>(value: unknown): value is Iterable<T> {
-  return (
-    (typeof value === "object" || typeof value === "function") &&
-    value !== null &&
-    Symbol.iterator in value &&
-    typeof value[Symbol.iterator] === "function"
+    value instanceof FormData ||
+    value instanceof URLSearchParams ||
+    (typeof value === "object" && value !== null)
   );
 }
 
@@ -168,27 +153,20 @@ export function formData(
       // Get input value from dataset
       const input = dataset.value;
 
-      // Handle plain objects directly (e.g., from JSON)
-      let transformedValue: Record<string, unknown>;
-      if (isPlainObject(input)) {
-        transformedValue = input;
-      }
-      // Handle iterables (FormData/URLSearchParams)
-      else if (isIterable(input)) {
-        transformedValue = preprocessFormData(input);
-      }
-      // Invalid input type
-      else {
+      // Check if input is valid (object, FormData, URLSearchParams)
+      if (!isFormDataInput(input)) {
         // @ts-expect-error - issue structure
         dataset.issues = [
           {
             kind: "schema",
             type: "form_data",
             input,
-            expected: "FormData",
+            expected: "FormData or URLSearchParams or object",
             received: typeof input,
             message:
-              message ?? "Invalid type: Expected FormData or object but received " + typeof input,
+              message ??
+              "Invalid type: Expected FormData or URLSearchParams or object but received " +
+                typeof input,
             requirement: undefined,
             path: undefined,
             issues: undefined,
@@ -205,6 +183,7 @@ export function formData(
           FormDataIssue | v.InferIssue<v.ObjectSchema<v.ObjectEntries, undefined>>
         >;
       }
+      const transformedValue = preprocessFormData(input);
 
       // Ensure all schema keys are present, even if missing from form data
       // This allows validators to provide their own defaults (like repeatable() returning [])
