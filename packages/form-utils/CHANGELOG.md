@@ -2,7 +2,7 @@
 
 This is the changelog for [`form-utils`](https://github.com/typed-web/typed-web/tree/main/packages/form-utils). It follows [semantic versioning](https://semver.org/).
 
-## Unreleased
+## v0.2.1 (2026-02-05)
 
 - Add `objectFromPathEntries` - extracted from `preprocessFormData` to convert path entries array into nested objects
 - Update `preprocessFormData` to accept `FormData`, `URLSearchParams`, or plain objects directly
