@@ -2,6 +2,10 @@
 
 This is the changelog for [`valibot-form-data`](https://github.com/typed-web/typed-web/tree/main/packages/valibot-form-data). It follows [semantic versioning](https://semver.org/).
 
+## Unreleased
+
+- Move `preprocessFormData` implementation to `@typed-web/form-utils` (re-exported for backwards compatibility)
+
 ## v0.3.1 (2026-01-27)
 
 - Add `@typed-web/form-utils` as a dependency

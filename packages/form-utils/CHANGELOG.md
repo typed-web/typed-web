@@ -2,6 +2,10 @@
 
 This is the changelog for [`form-utils`](https://github.com/typed-web/typed-web/tree/main/packages/form-utils). It follows [semantic versioning](https://semver.org/).
 
+## Unreleased
+
+- Add `preprocessFormData` - Transform FormData/URLSearchParams entries into nested objects with support for dot notation, bracket notation, and automatic grouping of multiple values
+
 ## v0.1.1 (2026-01-27)
 
 - Initial release

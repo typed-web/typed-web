@@ -13,3 +13,6 @@ export { nestedObjectToFlatObject } from "./lib/nested-object-to-flat-object.ts"
 // Array utilities
 export { getArraysDiff } from "./lib/get-arrays-diff.ts";
 export type { GetArraysDiffArgs } from "./lib/get-arrays-diff.ts";
+
+// FormData utilities
+export { preprocessFormData } from "./lib/preprocess-form-data.ts";
