@@ -1,6 +1,6 @@
 {
   "name": "@typed-web/form-utils",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Shared utilities for form handling: path parsing, error conversion, and array diffing",
   "author": "Łukasz Jagodziński <luke.jagodzinski@gmail.com>",
   "license": "MIT",
