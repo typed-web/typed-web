@@ -2,6 +2,10 @@
 
 This is the changelog for [`form-utils`](https://github.com/typed-web/typed-web/tree/main/packages/form-utils). It follows [semantic versioning](https://semver.org/).
 
+## Unreleased
+
+- Refactor `parsePath` from recursive to iterative implementation
+
 ## v0.2.1 (2026-02-05)
 
 - Add `objectFromPathEntries` - extracted from `preprocessFormData` to convert path entries array into nested objects

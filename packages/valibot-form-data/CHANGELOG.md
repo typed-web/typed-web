@@ -2,6 +2,10 @@
 
 This is the changelog for [`valibot-form-data`](https://github.com/typed-web/typed-web/tree/main/packages/valibot-form-data). It follows [semantic versioning](https://semver.org/).
 
+## Unreleased
+
+- Hoist object schema creation out of the validation loop in `formData`
+
 ## v0.4.1 (2026-02-05)
 
 - Simplify `formData` validator to use updated `preprocessFormData` from `@typed-web/form-utils`
