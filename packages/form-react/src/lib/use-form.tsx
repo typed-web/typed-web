@@ -6,15 +6,18 @@ import { FieldArray, type FieldArrayProps } from "./field-array";
 export function useForm<T extends Record<string, unknown>>(initialState: T): UseFormResult<T> {
   const store = useMemo(() => createFormStore(initialState), [initialState]);
 
-  return {
-    store,
-    Field: <P extends TuplePaths<T>>(props: Omit<FieldProps<T, P>, "store">) => (
-      <Field store={store} {...props} />
-    ),
-    FieldArray: <P extends TuplePaths<T>>(props: Omit<FieldArrayProps<T, P>, "store">) => (
-      <FieldArray store={store} {...props} />
-    ),
-  };
+  return useMemo(
+    () => ({
+      store,
+      Field: <P extends TuplePaths<T>>(props: Omit<FieldProps<T, P>, "store">) => (
+        <Field store={store} {...props} />
+      ),
+      FieldArray: <P extends TuplePaths<T>>(props: Omit<FieldArrayProps<T, P>, "store">) => (
+        <FieldArray store={store} {...props} />
+      ),
+    }),
+    [store],
+  );
 }
 
 export type UseFormResult<T extends Record<string, unknown>> = {

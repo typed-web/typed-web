@@ -138,6 +138,7 @@ export function formData(
   config?: FormDataConfig,
 ): FormDataSchema<v.ObjectEntries, v.ErrorMessage<FormDataIssue> | undefined> {
   const { loose = false, message } = config ?? {};
+  const objectSchema = loose ? v.looseObject(entries) : v.object(entries);
   return {
     kind: "schema",
     type: "form_data",
@@ -194,8 +195,6 @@ export function formData(
       }
 
       // Run the object schema validation on the transformed value
-      // Use looseObject if loose mode is enabled, otherwise use object
-      const objectSchema = loose ? v.looseObject(entries) : v.object(entries);
       const objectDataset = objectSchema["~run"]({ typed: false, value: transformedValue }, config);
 
       // Return the object schema's dataset result

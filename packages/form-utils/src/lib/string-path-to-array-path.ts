@@ -10,55 +10,33 @@ const DOT_NOTATION_REGEX = /^\.?([^\.\[\]]+)(.*)$/;
 const NUMERIC_KEY_REGEX = /^\d+$/;
 
 /**
- * Internal recursive parser for path segments.
- * Returns null if the path contains invalid syntax that cannot be parsed.
+ * Internal iterative parser for path segments.
+ * Consumes the path string segment by segment, trying bracket notation first,
+ * then dot notation. Returns null if any remaining portion cannot be parsed.
  *
- * @param currentPath - The remaining path to parse
+ * @param path - The path string to parse
  * @returns Array of path segments, or null if parsing fails
  */
-function parsePath(currentPath: string): Array<string | number> | null {
-  // Base case: empty path
-  if (currentPath.length === 0) {
-    return [];
-  }
+function parsePath(path: string): Array<string | number> | null {
+  const result: Array<string | number> = [];
+  let remaining = path;
 
-  // Try to match bracket notation first, then dot notation.
-  const bracketMatch = currentPath.match(BRACKET_NOTATION_REGEX);
-  const dotMatch = currentPath.match(DOT_NOTATION_REGEX);
+  while (remaining.length > 0) {
+    // Try bracket notation first (e.g. "[0]", "[key]"), fall back to dot notation (e.g. ".prop", "prop").
+    const match = remaining.match(BRACKET_NOTATION_REGEX) ?? remaining.match(DOT_NOTATION_REGEX);
 
-  if (bracketMatch) {
-    const [, key = "", rest = ""] = bracketMatch;
-    // Convert numeric keys to numbers, keep string keys as strings.
-    const parsedKey = NUMERIC_KEY_REGEX.test(key) ? Number(key) : key;
-
-    // Recursively process the rest of the path.
-    const restResult = parsePath(rest);
-
-    // If rest parsing failed (returned null), propagate failure
-    if (restResult === null) {
+    // No pattern matched but we still have content — invalid path.
+    if (match === null) {
       return null;
     }
 
-    return [parsedKey, ...restResult];
-  } else if (dotMatch) {
-    const [, key = "", rest = ""] = dotMatch;
+    const [, key = "", rest = ""] = match;
     // Convert numeric keys to numbers, keep string keys as strings.
-    const parsedKey = NUMERIC_KEY_REGEX.test(key) ? Number(key) : key;
-
-    // Recursively process the rest of the path.
-    const restResult = parsePath(rest);
-
-    // If rest parsing failed (returned null), propagate failure
-    if (restResult === null) {
-      return null;
-    }
-
-    return [parsedKey, ...restResult];
+    result.push(NUMERIC_KEY_REGEX.test(key) ? Number(key) : key);
+    remaining = rest;
   }
 
-  // No pattern matched but we still have content - invalid path
-  // Return null to signal failure
-  return null;
+  return result;
 }
 
 /**

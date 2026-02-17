@@ -1,16 +1,28 @@
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useMemo, useSyncExternalStore } from "react";
 import type { FormStore, TuplePathValue, TuplePaths } from "@typed-web/form-store";
 
 export function useField<T, const P extends TuplePaths<T>>(store: FormStore<T>, path: P) {
-  const subscribe = (callback: () => void) => store.subscribe(path, callback);
-  const getSnapshot = () => store.get(path);
+  const pathKey = path.join(".");
+
+  const subscribe = useCallback(
+    (callback: () => void) => store.subscribe(path, callback),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [store, pathKey],
+  );
+
+  const getSnapshot = useCallback(
+    () => store.get(path),
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [store, pathKey],
+  );
 
   const value = useSyncExternalStore(subscribe, getSnapshot, getSnapshot);
 
   const setValue = useCallback(
     (nextValue: TuplePathValue<T, P>) => store.set(path, nextValue),
-    [path, store],
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [store, pathKey],
   );
 
-  return { name: path.join("."), value, setValue };
+  return useMemo(() => ({ name: pathKey, value, setValue }), [pathKey, value, setValue]);
 }

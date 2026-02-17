@@ -1,6 +1,7 @@
 import eslint from "@eslint/js";
 import eslintPluginImport from "eslint-plugin-import";
 import eslintPluginPrettier from "eslint-plugin-prettier";
+import eslintPluginReactHooks from "eslint-plugin-react-hooks";
 import eslintPluginUnusedImports from "eslint-plugin-unused-imports";
 import tseslint from "typescript-eslint";
 
@@ -168,7 +169,19 @@ export default [
     },
   },
 
-  // Group 3: Test-Specific Rules for Test Files
+  // Group 3: JSX-Specific Rules
+  {
+    files: ["**/*.{jsx,tsx}"],
+    plugins: {
+      "react-hooks": eslintPluginReactHooks,
+    },
+    rules: {
+      "react-hooks/rules-of-hooks": "error",
+      "react-hooks/exhaustive-deps": "warn",
+    },
+  },
+
+  // Group 4: Test-Specific Rules for Test Files
   {
     files: ["**/*.test.{js,ts,jsx,tsx}", "**/*.spec.{js,ts,jsx,tsx}"],
     rules: {

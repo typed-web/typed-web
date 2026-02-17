@@ -48,7 +48,7 @@ export interface FormStore<T> {
     ) => void;
     swap: <P extends TuplePaths<T>>(path: P, indexA: number, indexB: number) => void;
     move: <P extends TuplePaths<T>>(path: P, fromIndex: number, toIndex: number) => void;
-    unshift: <P extends TuplePaths<T>>(path: P) => void;
+    shift: <P extends TuplePaths<T>>(path: P) => void;
     pop: <P extends TuplePaths<T>>(path: P) => void;
     replace: <P extends TuplePaths<T>>(
       path: P,
@@ -71,6 +71,10 @@ export function createFormStore<T extends Record<string, unknown>>(initialState:
     return path.join(".");
   }
 
+  function keyToPath(key: string): Path {
+    return key.split(".").map((k) => (/^\d+$/.test(k) ? parseInt(k) : k)) as Path;
+  }
+
   function get<P extends Path>(path: P): TuplePathValue<T, P> {
     return path.reduce(
       (acc, key) => (acc as Record<string | number, unknown>)?.[key],
@@ -86,7 +90,7 @@ export function createFormStore<T extends Record<string, unknown>>(initialState:
   function reset() {
     state = initialState;
     for (const pathKey of subscribers.keys()) {
-      const path = pathKey.split(".").map((k) => (/^\d+$/.test(k) ? parseInt(k) : k)) as Path;
+      const path = keyToPath(pathKey);
       subscribers.get(pathKey)?.forEach((cb) => cb(get(path)));
     }
   }
@@ -100,30 +104,55 @@ export function createFormStore<T extends Record<string, unknown>>(initialState:
     callback();
     batching = false;
     for (const pathKey of pendingNotifications) {
-      const path = pathKey.split(".").map((k) => (/^\d+$/.test(k) ? parseInt(k) : k)) as Path;
-      notify(path);
+      notify(keyToPath(pathKey));
     }
     pendingNotifications.clear();
   }
 
-  function setNested(obj: unknown, path: ReadonlyArray<string | number>, value: unknown): unknown {
-    const [head, ...rest] = path;
-    if (head === undefined) {
+  // Returns Record<string | number, unknown> for both arrays and objects.
+  // Arrays aren't truly string-keyed, but the unified type lets setNested
+  // treat all levels the same without separate type branches.
+  function shallowCopy(value: unknown): Record<string | number, unknown> {
+    return (
+      Array.isArray(value) ? [...value] : { ...(value as Record<string, unknown>) }
+    ) as Record<string | number, unknown>;
+  }
+
+  function setNested(
+    obj: Record<string | number, unknown>,
+    path: ReadonlyArray<string | number>,
+    value: unknown,
+  ): Record<string | number, unknown> {
+    if (path.length === 0) {
       throw new Error("Invalid path");
     }
 
-    const copy = Array.isArray(obj)
-      ? [...(obj as Array<unknown>)]
-      : { ...(obj as Record<string | number, unknown>) };
+    // Shallow-copy the root so we never mutate the original state.
+    const root = shallowCopy(obj);
 
-    if (rest.length === 0) {
-      (copy as Record<string | number, unknown>)[head] = value;
-    } else {
-      const child = (obj as Record<string | number, unknown>)[head];
-      (copy as Record<string | number, unknown>)[head] = setNested(child, rest, value);
+    // Walk forward to the second-to-last segment, shallow-copying each
+    // level and linking the copy into its already-copied parent.
+    let current = root;
+    for (let i = 0; i < path.length - 1; i++) {
+      const pathSegment = path[i];
+      if (pathSegment === undefined) {
+        throw new Error("Invalid path");
+      }
+      // Shallow-copy the child before descending into it.
+      const childCopy = shallowCopy(current[pathSegment]);
+      // Assign the copy back so the parent references the new object.
+      current[pathSegment] = childCopy;
+      current = childCopy;
     }
 
-    return copy;
+    // Set the value at the final segment of the path.
+    const lastPathSegment = path[path.length - 1];
+    if (lastPathSegment === undefined) {
+      throw new Error("Invalid path");
+    }
+    current[lastPathSegment] = value;
+
+    return root;
   }
 
   function subscribe<P extends Path>(
@@ -131,12 +160,10 @@ export function createFormStore<T extends Record<string, unknown>>(initialState:
     callback: (value: TuplePathValue<T, P>) => void,
   ): () => void {
     const key = pathToKey(path);
-    if (!subscribers.has(key)) {
-      subscribers.set(key, new Set());
-    }
-    const set = subscribers.get(key);
+    let set = subscribers.get(key);
     if (set === undefined) {
-      throw new Error(`Failed to get subscribers for path: ${key}`);
+      set = new Set();
+      subscribers.set(key, set);
     }
     set.add(callback as (v: unknown) => void);
 
@@ -148,10 +175,37 @@ export function createFormStore<T extends Record<string, unknown>>(initialState:
     };
   }
 
+  // Adds a path key to pending batch notifications while deduplicating
+  // ancestor/descendant relationships. Since notify() cascades to all
+  // child subscribers, we only need to keep the highest ancestor.
+  function addPendingNotification(key: string) {
+    const prefix = key + ".";
+
+    // If an ancestor is already pending, it will cascade to this path — skip.
+    // Example: "a" is pending, then "a.b" arrives
+    //   → skip "a.b" because notify("a") will already cascade to "a.b" subscribers
+    for (const existing of pendingNotifications) {
+      if (key.startsWith(existing + ".")) {
+        return;
+      }
+    }
+
+    // Remove any descendants — this ancestor covers them.
+    // Example: "a.b" is pending, then "a" arrives
+    //   → remove "a.b", add "a" because notify("a") covers "a.b" and all other "a.*"
+    for (const existing of pendingNotifications) {
+      if (existing.startsWith(prefix)) {
+        pendingNotifications.delete(existing);
+      }
+    }
+
+    pendingNotifications.add(key);
+  }
+
   function notify<P extends Path>(path: P) {
     const key = pathToKey(path);
     if (batching) {
-      pendingNotifications.add(key);
+      addPendingNotification(key);
       return;
     }
 
@@ -162,9 +216,7 @@ export function createFormStore<T extends Record<string, unknown>>(initialState:
     const prefix = key + ".";
     for (const childKey of subscribers.keys()) {
       if (childKey.startsWith(prefix)) {
-        const childPath = childKey
-          .split(".")
-          .map((k) => (/^\d+$/.test(k) ? parseInt(k) : k)) as Path;
+        const childPath = keyToPath(childKey);
         subscribers.get(childKey)?.forEach((cb) => {
           (cb as (v: unknown) => void)(get(childPath));
         });
@@ -200,14 +252,12 @@ export function createFormStore<T extends Record<string, unknown>>(initialState:
   function swap<P extends Path>(path: P, indexA: number, indexB: number) {
     const current = get(path);
     if (!Array.isArray(current)) throw new Error("Value under path is not an array");
-    const next = [...current];
-    const tempA = next[indexA];
-    const tempB = next[indexB];
-    if (tempA === undefined || tempB === undefined) {
+    if (indexA < 0 || indexA >= current.length || indexB < 0 || indexB >= current.length) {
       throw new Error("Index out of bounds");
     }
-    next[indexA] = tempB;
-    next[indexB] = tempA;
+    const next = [...current];
+    next[indexA] = current[indexB];
+    next[indexB] = current[indexA];
     set(path, next as TuplePathValue<T, P>);
   }
 
@@ -223,7 +273,7 @@ export function createFormStore<T extends Record<string, unknown>>(initialState:
     set(path, next as TuplePathValue<T, P>);
   }
 
-  function unshift<P extends Path>(path: P) {
+  function shift<P extends Path>(path: P) {
     const current = get(path);
     if (!Array.isArray(current)) throw new Error("Value under path is not an array");
     const rest = current.slice(1);
@@ -264,7 +314,7 @@ export function createFormStore<T extends Record<string, unknown>>(initialState:
       insert,
       swap,
       move,
-      unshift,
+      shift,
       pop,
       replace,
     },
