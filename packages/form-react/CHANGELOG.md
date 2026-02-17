@@ -2,7 +2,7 @@
 
 This is the changelog for [`form-react`](https://github.com/typed-web/typed-web/tree/main/packages/form-react). It follows [semantic versioning](https://semver.org/).
 
-## Unreleased
+## v0.2.0 (2026-02-17)
 
 - Memoize `subscribe`, `getSnapshot`, and `setValue` callbacks in `useField` and `useFieldArray` with stable path key dependency
 - Wrap return values of `useField`, `useFieldArray`, and `useForm` in `useMemo` to prevent unnecessary re-renders

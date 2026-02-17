@@ -2,7 +2,7 @@
 
 This is the changelog for [`form-utils`](https://github.com/typed-web/typed-web/tree/main/packages/form-utils). It follows [semantic versioning](https://semver.org/).
 
-## Unreleased
+## v0.3.0 (2026-02-17)
 
 - Refactor `parsePath` from recursive to iterative implementation
 

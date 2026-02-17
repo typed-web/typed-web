@@ -2,7 +2,7 @@
 
 This is the changelog for [`form-store`](https://github.com/typed-web/typed-web/tree/main/packages/form-store). It follows [semantic versioning](https://semver.org/).
 
-## Unreleased
+## v0.2.0 (2026-02-17)
 
 - Rename `unshift` to `shift` in `FormStore` array operations
 - Refactor `setNested` from recursive to iterative implementation with shallow copying
